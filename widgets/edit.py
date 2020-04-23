@@ -466,7 +466,11 @@ class EditWidget(html5.Div):
 				segments[cat] = self.accordion.addSegment(cat)
 
 			wdgGen = editBoneSelector.select(self.module, key, tmpDict)
-			widget = wdgGen.fromSkelStructure(self.module, key, tmpDict)
+			if wdgGen is None:
+				print("No edit bone widget found for %r", key)
+				continue
+
+			widget = wdgGen(self.module, key, tmpDict)
 			widget["id"] = "vi_%s_%s_%s_%s_bn_%s" % (self.editIdx, self.module, self.mode, cat, key)
 
 			if "setContext" in dir(widget) and callable(widget.setContext):
@@ -654,6 +658,9 @@ class EditWidget(html5.Div):
 		res = self.serializeForPost(True)
 		if res is None:
 			return None
+
+		for k, v in res.items():
+			print("%s: %s" % (k, v))
 
 		self.save(res)
 
