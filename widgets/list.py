@@ -4,7 +4,7 @@ from vi import html5
 from vi.config import conf
 from vi.i18n import translate
 from vi.network import NetworkService
-from vi.priorityqueue import viewDelegateSelector, moduleHandlerSelector
+from vi.priorityqueue import viewBoneSelector, moduleHandlerSelector
 # from vi.sidebarwidgets.filterselector import CompoundFilter #fixme
 #from vi.widgets.actionbar import ActionBar
 from vi.widgets.sidebar import SideBar
@@ -410,18 +410,14 @@ class ListWidget(html5.Div):
 			return
 
 		boneInfoList = []
-		tmpDict = {key: bone for key, bone in self._structure}
+		structure = {key: bone for key, bone in self._structure}
 
-		fields = [x for x in fields if x in tmpDict.keys()]
+		fields = [x for x in fields if x in structure.keys()]
 		self.columns = fields
 
-
-
 		for boneName in fields:
-			boneInfo = tmpDict[boneName]
-			delegateFactory = viewDelegateSelector.select( self.module, boneName, tmpDict )( self.module, boneName, tmpDict )
-			self.table.setCellRender( boneName, delegateFactory )
-			boneInfoList.append( boneInfo )
+			self.table.setCellRender(boneName, viewBoneSelector.select(self.module, boneName, structure).getFactory(self.module, boneName, structure))
+			boneInfoList.append(structure[boneName])
 
 		self.table.setShownFields( fields )
 
@@ -433,12 +429,10 @@ class ListWidget(html5.Div):
 		rendersDict = {}
 
 		for boneName in fields:
-			boneInfo = tmpDict[boneName]
-			delegateFactory = viewDelegateSelector.select( self.module, boneName, tmpDict )( self.module, boneName, tmpDict )
-			rendersDict[ boneName ] = delegateFactory
-			boneInfoList.append( boneInfo )
+			rendersDict[boneName] = viewBoneSelector.select(self.module, boneName, structure).getFactory(self.module, boneName, structure)
+			boneInfoList.append(structure[boneName])
 
-		self.table.setCellRenders( rendersDict )
+		self.table.setCellRenders(rendersDict)
 		self._tableHeaderIsValid = True
 
 	def getFields(self):

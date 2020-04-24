@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from vi import html5
 
-from vi.priorityqueue import editBoneSelector, viewDelegateSelector, extendedSearchWidgetSelector, extractorDelegateSelector
+from vi.priorityqueue import editBoneSelector, viewBoneSelector, extendedSearchWidgetSelector, extractorDelegateSelector
 from vi.framework.event import EventDispatcher
 from vi.i18n import translate
 from vi.config import conf
@@ -177,7 +177,7 @@ def CheckForSelectMultiBone(moduleName, boneName, skelStructure, *args, **kwargs
 
 #Register this Bone in the global queue
 editBoneSelector.insert( 3, CheckForSelectMultiBone, SelectMultiEditBone)
-viewDelegateSelector.insert( 3, CheckForSelectMultiBone, SelectMultiViewBoneDelegate)
+viewBoneSelector.insert( 3, CheckForSelectMultiBone, SelectMultiViewBoneDelegate)
 extendedSearchWidgetSelector.insert( 1, ExtendedSelectMultiSearch.canHandleExtension, ExtendedSelectMultiSearch )
 extractorDelegateSelector.insert(3, CheckForSelectMultiBone, SelectMultiBoneExtractor)
 

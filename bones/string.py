@@ -7,7 +7,7 @@ from vi.framework.event import EventDispatcher
 from vi.i18n import translate
 from vi.priorityqueue import \
 	editBoneSelector, \
-	viewDelegateSelector, \
+	viewBoneSelector, \
 	extendedSearchWidgetSelector, \
 	extractorDelegateSelector
 
@@ -606,6 +606,6 @@ class ExtendedStringSearch(html5.Div):
 
 # Register this Bone in the global queue
 editBoneSelector.insert(3, CheckForStringBone, StringEditBone)
-viewDelegateSelector.insert(3, CheckForStringBone, StringViewBoneDelegate)
+viewBoneSelector.insert(3, CheckForStringBone, StringViewBoneDelegate)
 extendedSearchWidgetSelector.insert(1, ExtendedStringSearch.canHandleExtension, ExtendedStringSearch)
 extractorDelegateSelector.insert(3, CheckForStringBone, StringBoneExtractor)

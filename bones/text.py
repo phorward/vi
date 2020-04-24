@@ -2,7 +2,7 @@
 from vi import html5
 from vi.bones.string import StringBoneExtractor
 from vi.config import conf
-from vi.priorityqueue import editBoneSelector, viewDelegateSelector, extractorDelegateSelector
+from vi.priorityqueue import editBoneSelector, viewBoneSelector, extractorDelegateSelector
 from vi.widgets.htmleditor import HtmlEditor
 from vi.framework.event import EventDispatcher
 
@@ -197,5 +197,5 @@ class TextEditBone(html5.Div):
 
 # Register this Bone in the global queue
 editBoneSelector.insert(3, TextEditBone.checkForTextBone, TextEditBone)
-viewDelegateSelector.insert(3, TextEditBone.checkForTextBone, TextViewBoneDelegate)
+viewBoneSelector.insert(3, TextEditBone.checkForTextBone, TextViewBoneDelegate)
 extractorDelegateSelector.insert(3, TextEditBone.checkForTextBone, TextBoneExtractor)

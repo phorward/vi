@@ -3,7 +3,7 @@ import re
 
 from vi import html5
 
-from vi.priorityqueue import editBoneSelector, viewDelegateSelector
+from vi.priorityqueue import editBoneSelector, viewBoneSelector
 from vi.exception import InvalidBoneValueException
 
 import vi.bones.string as strBone
@@ -56,4 +56,4 @@ def CheckForEmailBone(  moduleName, boneName, skelStucture, *args, **kwargs ):
 
 #Register this Bone in the global queue
 editBoneSelector.insert( 4, CheckForEmailBone, EmailEditBone)
-viewDelegateSelector.insert( 4, CheckForEmailBone, EmailViewBoneDelegate)
+viewBoneSelector.insert( 4, CheckForEmailBone, EmailViewBoneDelegate)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from vi import html5
 
-from vi.priorityqueue import editBoneSelector, viewDelegateSelector, extendedSearchWidgetSelector, extractorDelegateSelector
+from vi.priorityqueue import editBoneSelector, viewBoneSelector, extendedSearchWidgetSelector, extractorDelegateSelector
 from vi.framework.event import EventDispatcher
 from vi.i18n import translate
 from vi.config import conf
@@ -135,6 +135,6 @@ def CheckForSelectOneBone(moduleName, boneName, skelStructure, *args, **kwargs):
 
 #Register this Bone in the global queue
 editBoneSelector.insert( 3, CheckForSelectOneBone, SelectOneEditBone)
-viewDelegateSelector.insert( 3, CheckForSelectOneBone, SelectOneViewBoneDelegate)
+viewBoneSelector.insert( 3, CheckForSelectOneBone, SelectOneViewBoneDelegate)
 extendedSearchWidgetSelector.insert( 1, ExtendedSelectOneSearch.canHandleExtension, ExtendedSelectOneSearch )
 extractorDelegateSelector.insert(3, CheckForSelectOneBone, SelectOneBoneExtractor)

@@ -679,13 +679,14 @@ class DataTable( html5.Div ):
 
 		for field in self._shownFields:
 			if field in self._cellRender.keys():
-				lbl = self._cellRender[ field ].render( obj, field )
+				div = self._cellRender[field](obj)
 			elif field in obj.keys():
-				lbl = html5.Div(obj[field])
+				div = html5.Div(str(obj[field]))
 			else:
-				lbl = html5.Div("...")
-			lbl.addClass("ignt-table-content")
-			self.table.setCell( rowIdx, cellIdx, lbl )
+				div = html5.Div("...")
+
+			div.addClass("ignt-table-content")
+			self.table.setCell(rowIdx, cellIdx, div)
 			cellIdx += 1
 
 	def rebuildTable(self):

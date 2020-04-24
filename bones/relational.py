@@ -11,7 +11,7 @@ from vi.framework.components.datalist import Datalist,AutocompleteList
 from vi.i18n import translate
 from vi.network import NetworkService, DeferredCall
 from vi.pane import Pane
-from vi.priorityqueue import editBoneSelector, viewDelegateSelector, extendedSearchWidgetSelector, \
+from vi.priorityqueue import editBoneSelector, viewBoneSelector, extendedSearchWidgetSelector, \
 	extractorDelegateSelector
 
 from vi.widgets.edit import EditWidget
@@ -802,6 +802,6 @@ def CheckForRelationalBoneSingleSelection( moduleName, boneName, skelStructure, 
 #Register this Bone in the global queue
 editBoneSelector.insert( 10, CheckForRelationalBoneMultiSelection, RelationalBone)
 editBoneSelector.insert( 10, CheckForRelationalBoneSingleSelection, RelationalBone)
-viewDelegateSelector.insert( 10, CheckForRelationalBoneSelection, RelationalViewBoneDelegate)
+viewBoneSelector.insert( 10, CheckForRelationalBoneSelection, RelationalViewBoneDelegate)
 extendedSearchWidgetSelector.insert( 10, RelationalSearch.canHandleExtension, RelationalSearch )
 extractorDelegateSelector.insert(10, CheckForRelationalBoneSelection, RelationalBoneExtractor)

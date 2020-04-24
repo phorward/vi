@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from vi import html5
 
-from vi.priorityqueue import editBoneSelector, viewDelegateSelector
+from vi.priorityqueue import editBoneSelector, viewBoneSelector
 from vi.exception import InvalidBoneValueException
 from vi.i18n import translate
 

@@ -4,7 +4,7 @@ from vi.bones.relational import \
 	RelationalViewBoneDelegate, \
 	RelationalBoneExtractor
 from vi.config import conf
-from vi.priorityqueue import editBoneSelector, viewDelegateSelector, extractorDelegateSelector
+from vi.priorityqueue import editBoneSelector, viewBoneSelector, extractorDelegateSelector
 from vi.widgets.hierarchy import HierarchyWidget
 
 
@@ -49,5 +49,5 @@ def CheckForHierarchyBone(moduleName, boneName, skelStucture, *args, **kwargs):
 #Register this Bone in the global queue
 editBoneSelector.insert(5, CheckForHierarchyBoneSingleSelection, HierarchyBone)
 editBoneSelector.insert(5, CheckForHierarchyBoneMultiSelection, HierarchyBone)
-viewDelegateSelector.insert(3, CheckForHierarchyBone, RelationalViewBoneDelegate)
+viewBoneSelector.insert(3, CheckForHierarchyBone, RelationalViewBoneDelegate)
 extractorDelegateSelector.insert(3, CheckForHierarchyBone, RelationalBoneExtractor)

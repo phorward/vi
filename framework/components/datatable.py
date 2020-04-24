@@ -671,18 +671,18 @@ class DataTable( html5.Div ):
 
 		for field in self._shownFields:
 			if not recalculate and rowIdx<len(self._renderedModel) and field in self._renderedModel[rowIdx] and self._renderedModel[rowIdx][field]:
-				lbl = self._renderedModel[rowIdx][field]
+				div = self._renderedModel[rowIdx][field]
 			else:
 				if field in self._cellRender.keys():
-					lbl = self._cellRender[ field ].render( obj, field )
+					div = self._cellRender[ field ](obj)
 				elif field in obj.keys():
-					lbl = html5.Div(obj[field])
+					div = html5.Div(obj[field])
 				else:
-					lbl = html5.Div("...")
-				lbl.addClass("ignt-table-content")
-				self._renderedModel[rowIdx][field] = lbl
+					div = html5.Div("...")
+				div.addClass("ignt-table-content")
+				self._renderedModel[rowIdx][field] = div
 
-			self.table.setCell( rowIdx, cellIdx, lbl )
+			self.table.setCell(rowIdx, cellIdx, div)
 			cellIdx += 1
 
 	def rebuildTable(self, recalculate=True):
@@ -746,28 +746,23 @@ class DataTable( html5.Div ):
 		"""
 		if render is None:
 			if field in self._cellRender.keys():
-				del self._cellRender[ field ]
+				del self._cellRender[field]
 		else:
-			assert "render" in dir(render), "The render must provide a 'render' method"
-			self._cellRender[ field ] = render
+			self._cellRender[field] = render
 
-		#self.rebuildTable()
-
-	def setCellRenders(self, renders ):
+	def setCellRenders(self, renders):
 		"""
 			Like setCellRender, but sets multiple renders at one.
 			Much faster than calling setCellRender repeatedly.
 		"""
-		assert isinstance( renders, dict )
+		assert isinstance(renders, dict)
+
 		for field, render in renders.items():
 			if render is None:
 				if field in self._cellRender.keys():
 					del self._cellRender[ field ]
 			else:
-				assert "render" in dir(render), "The render must provide a 'render' method"
-				self._cellRender[ field ] = render
-
-		#self.rebuildTable()
+				self._cellRender[field] = render
 
 	def activateCurrentSelection(self):
 		"""

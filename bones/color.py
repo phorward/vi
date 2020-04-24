@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from vi import html5
-from vi.priorityqueue import editBoneSelector, viewDelegateSelector
+from vi.priorityqueue import editBoneSelector, viewBoneSelector
 from vi.config import conf
 
 class ColorViewBoneDelegate( object ):
@@ -63,4 +63,4 @@ def CheckForColorBone(moduleName, boneName, skelStucture, *args, **kwargs):
 
 #Register this Bone in the global queue
 editBoneSelector.insert( 3, CheckForColorBone, ColorEditBone)
-viewDelegateSelector.insert( 3, CheckForColorBone, ColorViewBoneDelegate)
+viewBoneSelector.insert( 3, CheckForColorBone, ColorViewBoneDelegate)

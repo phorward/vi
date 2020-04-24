@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from vi import html5
 
-from vi.priorityqueue import editBoneSelector, viewDelegateSelector, extractorDelegateSelector
+from vi.priorityqueue import editBoneSelector, viewBoneSelector, extractorDelegateSelector
 from vi.widgets.file import FileWidget, LeafFileWidget
 from vi.config import conf
 from vi.bones.relational import RelationalBone, RelationalMultiSelectionBoneEntry
@@ -270,5 +270,5 @@ def CheckForFileBone(  moduleName, boneName, skelStucture, *args, **kwargs ):
 #Register this Bone in the global queue
 editBoneSelector.insert( 5, CheckForFileBoneSingleSelection, FileBone)
 editBoneSelector.insert( 5, CheckForFileBoneMultiSelection, FileBone)
-viewDelegateSelector.insert( 3, CheckForFileBone, FileViewBoneDelegate)
+viewBoneSelector.insert( 3, CheckForFileBone, FileViewBoneDelegate)
 extractorDelegateSelector.insert(3, CheckForFileBone, FileBoneExtractor)

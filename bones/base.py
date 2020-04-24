@@ -1,68 +1,54 @@
 # -*- coding: utf-8 -*-
 from vi import html5
 from vi.framework.components.button import Button
-from vi.priorityqueue import editBoneSelector, viewDelegateSelector, extractorDelegateSelector
+from vi.priorityqueue import editBoneSelector, viewBoneSelector, extractorDelegateSelector
 from vi.config import conf
 
 
-class BaseBoneExtractor(object):
+class BaseViewBone(html5.Div):
 	"""
-		Base "Catch-All" extractor for everything not handled separately.
+		Base "Catch-All" view bone for everything not handled separately.
 	"""
-	def __init__(self, moduleName, boneName, skelStructure, *args, **kwargs):
+	def __init__(self, moduleName, boneName, boneStructure, data=None, *args, **kwargs ):
 		super().__init__()
-		self.skelStructure = skelStructure
-		self.boneName = boneName
+
 		self.moduleName = moduleName
-
-	def render(self, data, field):
-		if field in data.keys():
-			return str(data[field])
-
-		return conf["emptyValue"]
-
-	def raw(self, data, field):
-		if field in data.keys():
-			if isinstance(data[field], list):
-				return [str(x) for x in data[field]]
-
-			return str(data[field])
-
-		return None
-
-extractorDelegateSelector.insert(0, lambda *args, **kwargs: True, BaseBoneExtractor)
-
-
-class BaseViewBoneDelegate( object ):
-	"""
-		Base "Catch-All" delegate for everything not handled separately.
-	"""
-	def __init__(self, moduleName, boneName, skelStructure, *args, **kwargs ):
-		super().__init__()
-		self.skelStructure = skelStructure
 		self.boneName = boneName
-		self.moduleName=moduleName
+		self.boneStructure = boneStructure
 
-	def render(self, data, field):
-		value = conf["emptyValue"]
+		self.value = None
 
-		if field in data.keys():
-			value = str(data[field])
+		if data:
+			self.unserialize(data)
 
-		delegato = html5.Div(value)
-		delegato.addClass("vi-delegato", "vi-delegato--base")
-		return delegato
+	def unserialize(self, data):
+		self.value = data.get(self.boneName)
+		self.appendChild(str(self.value or conf["emptyValue"]), replace=True)
 
-viewDelegateSelector.insert(0, lambda *args, **kwargs: True, BaseViewBoneDelegate)
+	@staticmethod
+	def checkFor(_moduleName, _boneName, _boneStructure):
+		return True
+
+	@classmethod
+	def getFactory(cls, moduleName, boneName, boneStructure):
+		return lambda data=None: cls(moduleName, boneName, boneStructure, data=data)
+
+viewBoneSelector.insert(0, BaseViewBone.checkFor, BaseViewBone)
 
 # --- Single -----------------------------------------------------------------------------------------------------------
 
-class BaseEditBone(html5.Input):
+class BaseEditBone(html5.Div):
+	template = """<input [name]="input">"""
+	style = None
+
 	"""
 		Base edit widget.
 	"""
 	def __init__(self, moduleName, boneName, boneStructure, *args, **kwargs):
-		super().__init__()
+		super().__init__(
+			self.template,
+			style=self.style
+		)
 
 		self.moduleName = moduleName
 		self.boneName = boneName
@@ -71,7 +57,10 @@ class BaseEditBone(html5.Input):
 		self.update()
 
 	def _setValue(self, value):
-		super()._setValue(value or "")
+		self.input["value"] = value or ""
+
+	def _getValue(self):
+		return self.input["value"]
 
 	def unserialize(self, data, errorInfo=None):
 		self["value"] = data.get(self.boneName)
@@ -140,7 +129,7 @@ class BaseMultiEditBoneEntry(html5.Div):
 class BaseMultiEditBone(html5.Div):
 	entryBoneConstructor = BaseEditBone
 	entryConstructor = BaseMultiEditBoneEntry
-	style = []
+	style = None
 	template = """
 		<div [name]="widgets" class="vi-bone-widgets"></div>
 		<div [name]="actions" class="vi-bone-actions">
@@ -149,8 +138,10 @@ class BaseMultiEditBone(html5.Div):
 	"""
 
 	def __init__(self, moduleName, boneName, boneStructure):
-		super().__init__(self.template)
-		self.addClass(self.style)
+		super().__init__(
+			self.template,
+			style=self.style
+		)
 
 		self.moduleName = moduleName
 		self.boneName = boneName
@@ -246,15 +237,17 @@ editBoneSelector.insert(1, BaseMultiEditBone.checkFor, BaseMultiEditBone)
 
 class BaseLangEditBone(html5.Div):
 	entryBoneConstructor = BaseEditBone
-	style = []
+	style = None
 	template = """
 		<div [name]="widgets" class="vi-bone-widgets"></div>
 		<div [name]="actions" class="vi-bone-actions"></div>
 	"""
 
 	def __init__(self, moduleName, boneName, boneStructure):
-		super().__init__(self.template)
-		self.addClass(self.style)
+		super().__init__(
+			self.template,
+			style=self.style
+		)
 
 		self.moduleName = moduleName
 		self.boneName = boneName

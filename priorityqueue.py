@@ -72,7 +72,7 @@ toplevelActionSelector = PriorityQueue() # Top bar actions queue
 loginHandlerSelector = PriorityQueue() # Login handlers
 
 #OLD
-viewDelegateSelector = PriorityQueue() # Queried by listWidget to determine the viewDelegates for the table
+viewBoneSelector = PriorityQueue() # Queried by listWidget to determine the viewDelegates for the table
 protocolWrapperClassSelector = PriorityQueue() # Used during startup to select an Wrapper-Class
 protocolWrapperInstanceSelector = PriorityQueue() # Used afterwards to get a specific instance
 
