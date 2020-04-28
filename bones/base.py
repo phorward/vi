@@ -6,10 +6,10 @@ from vi.config import conf
 
 # --- Single -----------------------------------------------------------------------------------------------------------
 
-class BaseEditBone(html5.Widget):
+class BaseBone(html5.Widget): # @AK: Wir erben von html5.Widget, weil wir damit den Typ des Tags verändern können (beim erben)
 	_baseClass = "div"
 	template = """<input [name]="widget">"""
-	style = None
+	style = None    # @AK: Definiert styling-Klassen, die via addClass hinzugefügt werden
 
 	def __init__(self, moduleName, boneName, boneStructure, data=None, *args, **kwargs):
 		super().__init__(
@@ -25,15 +25,11 @@ class BaseEditBone(html5.Widget):
 			self.widget = None
 
 		self.value = None
-		self.render()
 
 		if data:
 			self.unserialize(data)
 
 		self.update()
-
-	def render(self):
-		return
 
 	def focus(self):
 		if self.widget:
@@ -42,6 +38,8 @@ class BaseEditBone(html5.Widget):
 			super().focus()
 
 	def _setValue(self, value):
+		# @AK: Unter widget["value"] wird hierbei der Raw-Wert abgelegt. BaseBone geht davon aus,
+		#      dass der Wert entweder an ein "widget" weitergereicht wird, oder speichert den Wert selbst.
 		if self.widget:
 			self.widget["value"] = value
 		else:
@@ -76,30 +74,47 @@ class BaseEditBone(html5.Widget):
 			self.disable()
 
 	@classmethod
-	def checkFor(cls, _moduleName, _boneName, _boneStructure):
-		return True
-
-	@classmethod
 	def editBone(cls, moduleName, boneName, boneStructure, data=None):
+		"""
+		Creates a Widget that is used to edit the bone.
+		"""
 		return cls(moduleName, boneName, boneStructure, data=data)
 
 	@classmethod
 	def getEditBoneFactory(cls, moduleName, boneName, boneStructure):
+		"""
+		Generates a factory for editBones with the equal base configuration.
+		"""
 		return lambda data=None: cls(moduleName, boneName, boneStructure, data=data)
 
 	@classmethod
-	def viewBone(cls, moduleName, boneName, boneStructure, data=None):
-		return html5.Span(html5.TextNode((data.get(boneName) if data else None) or conf["emptyValue"]))
+	def viewBone(cls, moduleName, boneName, boneStructure, data):
+		"""
+		Creates a Widget that is used to display the bone extracted from data.
+		"""
+
+		#@AK: Hatte hier erst überlegt sowas wie ein "viewTemplate" zu machen, aber wie soll man das dann ausdrücken
+		#     bei Multiple? Macht keinen Sinn glaube ich.
+		return html5.Span(html5.TextNode(data.get(boneName) or conf["emptyValue"]))
 
 	@classmethod
 	def getViewBoneFactory(cls, moduleName, boneName, boneStructure):
-		return lambda data=None: cls.viewBone(moduleName, boneName, boneStructure, data)
+		"""
+		Generates a factory for viewBones with equal base configuration.
+		Returns a function to be called with data where the bone will be extracted from.
+		"""
+		return lambda data: cls.viewBone(moduleName, boneName, boneStructure, data)
 
-boneSelector.insert(0, BaseEditBone.checkFor, BaseEditBone)
+	@classmethod
+	def checkFor(cls, _moduleName, _boneName, _boneStructure):
+		return True
+
+boneSelector.insert(0, BaseBone.checkFor, BaseBone)
 
 # --- Multiple ---------------------------------------------------------------------------------------------------------
 
-class BaseMultiEditBoneEntry(html5.Widget):
+class BaseMultiBoneEntry(html5.Widget): #@AK überlege noch diesen in BaseMultiBone einfließen zu lassen... was meinste?
+										# der dient im Moment nur als Wrapper für einen Eintrag, reicht aber vieles durch.
 	_baseClass = "div"
 	template = """
 	<button [name]="removeBtn" class="btn-delete" text="Delete" icon="icons-delete"></button>
@@ -134,10 +149,10 @@ class BaseMultiEditBoneEntry(html5.Widget):
 	def focus(self):
 		self.widget.focus()
 
-class BaseMultiEditBone(BaseEditBone):
+class BaseMultiBone(BaseBone):
 	_baseClass = "div"
-	boneConstructor = BaseEditBone #todo: rename to boneClass
-	rowConstructor = BaseMultiEditBoneEntry
+	boneFactory = BaseBone
+	rowConstructor = BaseMultiBoneEntry
 	style = None
 	template = """
 		<div [name]="widgets" class="vi-bone-widgets"></div>
@@ -156,7 +171,7 @@ class BaseMultiEditBone(BaseEditBone):
 		entry.focus()
 
 	def addEntry(self, value=None):
-		entry = self.boneConstructor(self.moduleName, self.boneName, self.boneStructure)
+		entry = self.boneFactory(self.moduleName, self.boneName, self.boneStructure)
 		if self.rowConstructor:
 			entry = self.rowConstructor(entry)
 
@@ -196,6 +211,10 @@ class BaseMultiEditBone(BaseEditBone):
 		}
 
 	def serializeForPost(self, prefix=""):
+		#@AK: Diesen Affentanz müssen wir machen, weil der Core das parsing der Parameter beim fromClient() nicht so
+		#     umsetzt wie ich es mal vorgeschlagen hatte, indem es immer bonename.0, bonename.1 etc. ist... nein hier
+		#     ist es eine list, wenn es ein Wert je Sub-Widget ist und eine dict[key + "." + index] wenn es z.b. ein
+		#     relationalBone ist... naja egal, mache hier nur meinen doofen job.
 		retDict = {}
 		retList = []
 		cnt = 0
@@ -217,7 +236,8 @@ class BaseMultiEditBone(BaseEditBone):
 			cnt += 1
 
 		assert not(retDict and retList), \
-			"Something inside the bone implementation of %s is wrong" % self.boneConstructor.__class__.__name__
+			"Something inside the bone implementation of %s is wrong" % self.boneFactory.__class__.__name__
+			#@AK: Dieses assert wäre dann hinfällig (siehe oben)
 
 		if retList:
 			return {
@@ -237,20 +257,20 @@ class BaseMultiEditBone(BaseEditBone):
 		ul = html5.Ul()
 		for value in values:
 			ul.appendChild(
-				html5.Li(cls.boneConstructor.viewBone(moduleName, boneName, boneStructure, data={boneName: value}))
+				html5.Li(cls.boneFactory.viewBone(moduleName, boneName, boneStructure, data={boneName: value}))
 			)
 
 		return ul
 
 # Register this Bone in the global queue as generic fallback.
-boneSelector.insert(1, BaseMultiEditBone.checkFor, BaseMultiEditBone)
+boneSelector.insert(1, BaseMultiBone.checkFor, BaseMultiBone)
 
 
 # --- Language ---------------------------------------------------------------------------------------------------------
 
-class BaseLangEditBone(BaseEditBone):
+class BaseLangBone(BaseBone):
 	_baseClass = "div"
-	boneConstructor = BaseEditBone
+	boneFactory = BaseBone
 	style = None
 	template = """
 		<div [name]="widgets" class="vi-bone-widgets"></div>
@@ -273,7 +293,7 @@ class BaseLangEditBone(BaseEditBone):
 
 			self.actions.appendChild(langBtn)
 
-			langWidget = self.boneConstructor(self.moduleName, self.boneName, self.boneStructure)
+			langWidget = self.boneFactory(self.moduleName, self.boneName, self.boneStructure)
 			langWidget.lang = lang
 
 			if lang != conf["defaultLanguage"]:
@@ -334,23 +354,23 @@ class BaseLangEditBone(BaseEditBone):
 			ul.appendChild(
 				html5.Li(
 					html5.Span(lang),
-					cls.boneConstructor.viewBone(moduleName, boneName, boneStructure, data={boneName: value})
+					cls.boneFactory.viewBone(moduleName, boneName, boneStructure, data={boneName: value})
 				)
 			)
 
 		return ul
 
 # Register this Bone in the global queue as generic fallback.
-boneSelector.insert(2, BaseLangEditBone.checkFor, BaseLangEditBone)
+boneSelector.insert(2, BaseLangBone.checkFor, BaseLangBone)
 
 # --- Multi+Language ---------------------------------------------------------------------------------------------------
 
-class BaseMultiLangEditBone(BaseLangEditBone):
-	boneConstructor = BaseMultiEditBone
+class BaseMultiLangBone(BaseLangBone):
+	boneFactory = BaseMultiBone
 
 	@classmethod
 	def checkFor(cls, _moduleName, boneName, boneStructure):
 		return boneStructure[boneName].get("multiple") and isinstance(boneStructure[boneName].get("languages"), list)
 
 # Register this Bone in the global queue as generic fallback.
-boneSelector.insert(2, BaseMultiLangEditBone.checkFor, BaseMultiLangEditBone)
+boneSelector.insert(2, BaseMultiLangBone.checkFor, BaseMultiLangBone)
