@@ -62,7 +62,7 @@ class PriorityQueue( object ):
 
 HandlerClassSelector = PriorityQueue() # Used during startup to select an Wrapper-Class
 moduleHandlerSelector = PriorityQueue() # Used to select an embedded widget to represent a module
-editBoneSelector = PriorityQueue() # Queried by editWidget to locate its bones
+boneSelector = PriorityQueue() # Queried to locate bone renderers and Widgets
 actionDelegateSelector = PriorityQueue() # Locates an action for a given module/action-name
 displayDelegateSelector = PriorityQueue() # Selects a widget used to display data from a certain module
 initialHashHandler = PriorityQueue() # Provides the handler for the initial hash given in the url
@@ -72,7 +72,6 @@ toplevelActionSelector = PriorityQueue() # Top bar actions queue
 loginHandlerSelector = PriorityQueue() # Login handlers
 
 #OLD
-viewBoneSelector = PriorityQueue() # Queried by listWidget to determine the viewDelegates for the table
 protocolWrapperClassSelector = PriorityQueue() # Used during startup to select an Wrapper-Class
 protocolWrapperInstanceSelector = PriorityQueue() # Used afterwards to get a specific instance
 

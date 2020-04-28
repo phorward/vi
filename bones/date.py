@@ -3,7 +3,7 @@ import re, datetime,json
 
 from vi import html5
 
-from vi.priorityqueue import editBoneSelector, viewBoneSelector, extractorDelegateSelector, extendedSearchWidgetSelector
+from vi.priorityqueue import boneSelector, boneSelector, extractorDelegateSelector, extendedSearchWidgetSelector
 from vi.framework.event import EventDispatcher
 from vi.i18n import translate
 from vi.config import conf
@@ -317,7 +317,7 @@ class DateRangeFilterPlugin(html5.Div):
 
 
 # Register this Bone in the global queue
-editBoneSelector.insert(3, CheckForDateBone, DateEditBone)
-viewBoneSelector.insert(3, CheckForDateBone, DateViewBoneDelegate)
+boneSelector.insert(3, CheckForDateBone, DateEditBone)
+boneSelector.insert(3, CheckForDateBone, DateViewBoneDelegate)
 extractorDelegateSelector.insert(3, CheckForDateBone, DateBoneExtractor)
 extendedSearchWidgetSelector.insert(1, DateRangeFilterPlugin.canHandleExtension, DateRangeFilterPlugin)

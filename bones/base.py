@@ -1,45 +1,8 @@
 # -*- coding: utf-8 -*-
 from vi import html5
 from vi.framework.components.button import Button
-from vi.priorityqueue import editBoneSelector, viewBoneSelector
+from vi.priorityqueue import boneSelector
 from vi.config import conf
-
-class BaseViewBone(html5.Widget):
-	_baseClass = "div"
-	template = html5.TextNode  # a widget constructor or HTML template which may contain a {{value}} placeholder
-	style = None
-
-	def __init__(self, moduleName, boneName, boneStructure, data=None, *args, **kwargs ):
-		super().__init__(style=self.style)
-
-		self.moduleName = moduleName
-		self.boneName = boneName
-		self.boneStructure = boneStructure
-
-		self.value = None
-
-		if data:
-			self.unserialize(data)
-
-	def unserialize(self, data):
-		self.value = data.get(self.boneName)
-		value = str(self.value or conf["emptyValue"])
-		widget = self.template
-
-		if callable(widget):
-			widget = widget(value)
-
-		self.appendChild(widget, vars={"value": value}, replace=True)
-
-	@classmethod
-	def checkFor(cls, _moduleName, _boneName, _boneStructure):
-		return True
-
-	@classmethod
-	def getFactory(cls, moduleName, boneName, boneStructure):
-		return lambda data=None: cls(moduleName, boneName, boneStructure, data=data)
-
-viewBoneSelector.insert(0, BaseViewBone.checkFor, BaseViewBone)
 
 # --- Single -----------------------------------------------------------------------------------------------------------
 
@@ -58,6 +21,9 @@ class BaseEditBone(html5.Widget):
 		self.boneName = boneName
 		self.boneStructure = boneStructure
 
+		if "widget" not in dir(self):
+			self.widget = None
+
 		self.value = None
 		self.render()
 
@@ -68,6 +34,12 @@ class BaseEditBone(html5.Widget):
 
 	def render(self):
 		return
+
+	def focus(self):
+		if self.widget:
+			self.widget.focus()
+		else:
+			super().focus()
 
 	def _setValue(self, value):
 		if self.widget:
@@ -107,8 +79,23 @@ class BaseEditBone(html5.Widget):
 	def checkFor(cls, _moduleName, _boneName, _boneStructure):
 		return True
 
+	@classmethod
+	def editBone(cls, moduleName, boneName, boneStructure, data=None):
+		return cls(moduleName, boneName, boneStructure, data=data)
 
-editBoneSelector.insert(0, BaseEditBone.checkFor, BaseEditBone)
+	@classmethod
+	def getEditBoneFactory(cls, moduleName, boneName, boneStructure):
+		return lambda data=None: cls(moduleName, boneName, boneStructure, data=data)
+
+	@classmethod
+	def viewBone(cls, moduleName, boneName, boneStructure, data=None):
+		return html5.Span(html5.TextNode((data.get(boneName) if data else None) or conf["emptyValue"]))
+
+	@classmethod
+	def getViewBoneFactory(cls, moduleName, boneName, boneStructure):
+		return lambda data=None: cls.viewBone(moduleName, boneName, boneStructure, data)
+
+boneSelector.insert(0, BaseEditBone.checkFor, BaseEditBone)
 
 # --- Multiple ---------------------------------------------------------------------------------------------------------
 
@@ -149,7 +136,7 @@ class BaseMultiEditBoneEntry(html5.Widget):
 
 class BaseMultiEditBone(BaseEditBone):
 	_baseClass = "div"
-	boneConstructor = BaseEditBone
+	boneConstructor = BaseEditBone #todo: rename to boneClass
 	rowConstructor = BaseMultiEditBoneEntry
 	style = None
 	template = """
@@ -243,8 +230,20 @@ class BaseMultiEditBone(BaseEditBone):
 	def checkFor(cls, _moduleName, boneName, boneStructure):
 		return boneStructure[boneName].get("multiple")
 
+	@classmethod
+	def viewBone(cls, moduleName, boneName, boneStructure, data=None):
+		values = (data.get(boneName) if data else None) or []
+
+		ul = html5.Ul()
+		for value in values:
+			ul.appendChild(
+				html5.Li(cls.boneConstructor.viewBone(moduleName, boneName, boneStructure, data={boneName: value}))
+			)
+
+		return ul
+
 # Register this Bone in the global queue as generic fallback.
-editBoneSelector.insert(1, BaseMultiEditBone.checkFor, BaseMultiEditBone)
+boneSelector.insert(1, BaseMultiEditBone.checkFor, BaseMultiEditBone)
 
 
 # --- Language ---------------------------------------------------------------------------------------------------------
@@ -325,8 +324,24 @@ class BaseLangEditBone(BaseEditBone):
 	def checkFor(cls, _moduleName, boneName, boneStructure):
 		return not boneStructure[boneName].get("multiple") and isinstance(boneStructure[boneName].get("languages"), list)
 
+	@classmethod
+	def viewBone(cls, moduleName, boneName, boneStructure, data=None):
+		values = (data.get(boneName) if data else None) or []
+
+		ul = html5.Ul()
+		for lang in boneStructure[boneName]["languages"]:
+			value = values.get(lang)
+			ul.appendChild(
+				html5.Li(
+					html5.Span(lang),
+					cls.boneConstructor.viewBone(moduleName, boneName, boneStructure, data={boneName: value})
+				)
+			)
+
+		return ul
+
 # Register this Bone in the global queue as generic fallback.
-editBoneSelector.insert(2, BaseLangEditBone.checkFor, BaseLangEditBone)
+boneSelector.insert(2, BaseLangEditBone.checkFor, BaseLangEditBone)
 
 # --- Multi+Language ---------------------------------------------------------------------------------------------------
 
@@ -338,4 +353,4 @@ class BaseMultiLangEditBone(BaseLangEditBone):
 		return boneStructure[boneName].get("multiple") and isinstance(boneStructure[boneName].get("languages"), list)
 
 # Register this Bone in the global queue as generic fallback.
-editBoneSelector.insert(2, BaseMultiLangEditBone.checkFor, BaseMultiLangEditBone)
+boneSelector.insert(2, BaseMultiLangEditBone.checkFor, BaseMultiLangEditBone)

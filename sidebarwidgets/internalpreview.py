@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from vi import html5
 
-from vi.priorityqueue import viewBoneSelector
+from vi.priorityqueue import boneSelector
 from vi.config import conf
 from vi.framework.components.button import Button
 from js import document
@@ -34,7 +34,7 @@ class InternalPreview( html5.Ul ):
 
 			self.ipdd = html5.Dd()
 			self.ipdd.addClass("vi-sb-intprev-descr")
-			delegateFactory = viewBoneSelector.select(module, key, tmpDict)(module, key, tmpDict)
+			delegateFactory = boneSelector.select(module, key, tmpDict)(module, key, tmpDict)
 
 			if key == "key":
 				keydiv = html5.Div()

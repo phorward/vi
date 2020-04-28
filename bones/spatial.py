@@ -2,7 +2,7 @@
 from vi import html5
 
 from vi.i18n import translate
-from vi.priorityqueue import editBoneSelector
+from vi.priorityqueue import boneSelector
 
 
 class SpatialBone(html5.Div):
@@ -59,4 +59,4 @@ def CheckForSpatialBone(moduleName, boneName, skelStucture, *args, **kwargs):
 
 
 # Register this Bone in the global queue
-editBoneSelector.insert(5, CheckForSpatialBone, SpatialBone)
+boneSelector.insert(5, CheckForSpatialBone, SpatialBone)

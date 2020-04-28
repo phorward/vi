@@ -8,7 +8,7 @@ from vi.bones.base import BaseBoneExtractor
 from vi.config import conf
 from vi.framework.event import EventDispatcher
 from vi.i18n import translate
-from vi.priorityqueue import editBoneSelector, viewBoneSelector, extractorDelegateSelector
+from vi.priorityqueue import boneSelector, boneSelector, extractorDelegateSelector
 from vi.widgets.internaledit import InternalEdit
 from vi.framework.components.button import Button
 
@@ -473,7 +473,7 @@ def checkForRecordBone(moduleName, boneName, skelStructure, *args, **kwargs):
 
 
 # Register this Bone in the global queue
-editBoneSelector.insert(5, RecordMultiBone.checkFor, RecordMultiBone)
-editBoneSelector.insert(5, RecordSingleBone.checkFor, RecordSingleBone)
-viewBoneSelector.insert(5, checkForRecordBone, RecordViewBoneDelegate)
+boneSelector.insert(5, RecordMultiBone.checkFor, RecordMultiBone)
+boneSelector.insert(5, RecordSingleBone.checkFor, RecordSingleBone)
+boneSelector.insert(5, checkForRecordBone, RecordViewBoneDelegate)
 extractorDelegateSelector.insert(4, checkForRecordBone, RecordBoneExtractor)

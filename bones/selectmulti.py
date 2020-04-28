@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from vi import html5
 
-from vi.priorityqueue import editBoneSelector, viewBoneSelector, extendedSearchWidgetSelector, extractorDelegateSelector
+from vi.priorityqueue import boneSelector, boneSelector, extendedSearchWidgetSelector, extractorDelegateSelector
 from vi.framework.event import EventDispatcher
 from vi.i18n import translate
 from vi.config import conf
@@ -176,8 +176,8 @@ def CheckForSelectMultiBone(moduleName, boneName, skelStructure, *args, **kwargs
 	        or ((skelStructure[boneName]["type"] == "selectmulti" or skelStructure[boneName]["type"].startswith("selectmulti."))))
 
 #Register this Bone in the global queue
-editBoneSelector.insert( 3, CheckForSelectMultiBone, SelectMultiEditBone)
-viewBoneSelector.insert( 3, CheckForSelectMultiBone, SelectMultiViewBoneDelegate)
+boneSelector.insert( 3, CheckForSelectMultiBone, SelectMultiEditBone)
+boneSelector.insert( 3, CheckForSelectMultiBone, SelectMultiViewBoneDelegate)
 extendedSearchWidgetSelector.insert( 1, ExtendedSelectMultiSearch.canHandleExtension, ExtendedSelectMultiSearch )
 extractorDelegateSelector.insert(3, CheckForSelectMultiBone, SelectMultiBoneExtractor)
 
@@ -404,4 +404,4 @@ def CheckForAccessMultiSelectBone(moduleName, boneName, skelStructure, *args, **
 	return skelStructure[boneName]["type"] in ["select.access", "selectmulti.access"]
 
 #Register this Bone in the global queue
-editBoneSelector.insert( 4, CheckForAccessMultiSelectBone, AccessMultiSelectBone )
+boneSelector.insert( 4, CheckForAccessMultiSelectBone, AccessMultiSelectBone )

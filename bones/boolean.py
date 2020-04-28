@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from vi import html5
-from vi.priorityqueue import editBoneSelector, viewBoneSelector, extendedSearchWidgetSelector
+from vi.priorityqueue import boneSelector, boneSelector, extendedSearchWidgetSelector
 from vi.config import conf
 from vi.framework.event import EventDispatcher
 from vi.i18n import translate
@@ -109,6 +109,6 @@ def CheckForBooleanBone(moduleName, boneName, skelStucture, *args, **kwargs):
 
 
 # Register this Bone in the global queue
-editBoneSelector.insert(3, CheckForBooleanBone, BooleanEditBone)
-viewBoneSelector.insert(3, CheckForBooleanBone, BooleanViewBoneDelegate)
+boneSelector.insert(3, CheckForBooleanBone, BooleanEditBone)
+boneSelector.insert(3, CheckForBooleanBone, BooleanViewBoneDelegate)
 extendedSearchWidgetSelector.insert(1, ExtendedBooleanSearch.canHandleExtension, ExtendedBooleanSearch)

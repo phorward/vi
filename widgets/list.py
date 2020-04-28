@@ -4,7 +4,7 @@ from vi import html5
 from vi.config import conf
 from vi.i18n import translate
 from vi.network import NetworkService
-from vi.priorityqueue import viewBoneSelector, moduleHandlerSelector
+from vi.priorityqueue import boneSelector, moduleHandlerSelector
 # from vi.sidebarwidgets.filterselector import CompoundFilter #fixme
 #from vi.widgets.actionbar import ActionBar
 from vi.widgets.sidebar import SideBar
@@ -416,7 +416,7 @@ class ListWidget(html5.Div):
 		self.columns = fields
 
 		for boneName in fields:
-			self.table.setCellRender(boneName, viewBoneSelector.select(self.module, boneName, structure).getFactory(self.module, boneName, structure))
+			self.table.setCellRender(boneName, boneSelector.select(self.module, boneName, structure).getViewBoneFactory(self.module, boneName, structure))
 			boneInfoList.append(structure[boneName])
 
 		self.table.setShownFields( fields )
@@ -429,7 +429,7 @@ class ListWidget(html5.Div):
 		rendersDict = {}
 
 		for boneName in fields:
-			rendersDict[boneName] = viewBoneSelector.select(self.module, boneName, structure).getFactory(self.module, boneName, structure)
+			rendersDict[boneName] = boneSelector.select(self.module, boneName, structure).getViewBoneFactory(self.module, boneName, structure)
 			boneInfoList.append(structure[boneName])
 
 		self.table.setCellRenders(rendersDict)

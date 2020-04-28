@@ -5,7 +5,7 @@ import vi.utils as utils
 
 from vi.network import NetworkService, DeferredCall
 from vi.config import conf
-from vi.priorityqueue import editBoneSelector
+from vi.priorityqueue import boneSelector
 from vi.widgets.tooltip import ToolTip
 from vi.framework.components.actionbar import ActionBar
 from vi.i18n import translate
@@ -465,12 +465,12 @@ class EditWidget(html5.Div):
 			if cat not in segments:
 				segments[cat] = self.accordion.addSegment(cat)
 
-			wdgGen = editBoneSelector.select(self.module, key, tmpDict)
+			wdgGen = boneSelector.select(self.module, key, tmpDict)
 			if wdgGen is None:
 				print("No edit bone widget found for %r", key)
 				continue
 
-			widget = wdgGen(self.module, key, tmpDict)
+			widget = wdgGen.editBone(self.module, key, tmpDict)
 			widget["id"] = "vi_%s_%s_%s_%s_bn_%s" % (self.editIdx, self.module, self.mode, cat, key)
 
 			if "setContext" in dir(widget) and callable(widget.setContext):

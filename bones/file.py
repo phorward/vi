@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from vi import html5
 
-from vi.priorityqueue import editBoneSelector, viewBoneSelector, extractorDelegateSelector
+from vi.priorityqueue import boneSelector, boneSelector, extractorDelegateSelector
 from vi.widgets.file import FileWidget, LeafFileWidget
 from vi.config import conf
 from vi.bones.relational import RelationalBone, RelationalMultiSelectionBoneEntry
@@ -268,7 +268,7 @@ def CheckForFileBone(  moduleName, boneName, skelStucture, *args, **kwargs ):
 	return skelStucture[boneName]["type"].startswith("treeitem.file")
 
 #Register this Bone in the global queue
-editBoneSelector.insert( 5, CheckForFileBoneSingleSelection, FileBone)
-editBoneSelector.insert( 5, CheckForFileBoneMultiSelection, FileBone)
-viewBoneSelector.insert( 3, CheckForFileBone, FileViewBoneDelegate)
+boneSelector.insert( 5, CheckForFileBoneSingleSelection, FileBone)
+boneSelector.insert( 5, CheckForFileBoneMultiSelection, FileBone)
+boneSelector.insert( 3, CheckForFileBone, FileViewBoneDelegate)
 extractorDelegateSelector.insert(3, CheckForFileBone, FileBoneExtractor)

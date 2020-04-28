@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from vi import html5
-from vi.priorityqueue import editBoneSelector, viewBoneSelector, extendedSearchWidgetSelector, extractorDelegateSelector
+from vi.priorityqueue import boneSelector, boneSelector, extendedSearchWidgetSelector, extractorDelegateSelector
 from vi.framework.event import EventDispatcher
 from vi.config import conf
 from vi.bones.base import BaseBoneExtractor
@@ -177,7 +177,7 @@ def CheckForNumericBone(moduleName, boneName, skelStucture, *args, **kwargs):
 	return skelStucture[boneName]["type"] == "numeric"
 
 #Register this Bone in the global queue
-editBoneSelector.insert( 3, CheckForNumericBone, NumericEditBone)
-viewBoneSelector.insert( 3, CheckForNumericBone, NumericViewBoneDelegate)
+boneSelector.insert( 3, CheckForNumericBone, NumericEditBone)
+boneSelector.insert( 3, CheckForNumericBone, NumericViewBoneDelegate)
 extendedSearchWidgetSelector.insert( 1, ExtendedNumericSearch.canHandleExtension, ExtendedNumericSearch )
 extractorDelegateSelector.insert( 3, CheckForNumericBone, NumericBoneExtractor)

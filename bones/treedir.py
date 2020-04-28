@@ -6,7 +6,7 @@ from vi.config import conf
 from vi.i18n import translate
 from vi.network import NetworkService
 from vi.pane import Pane
-from vi.priorityqueue import editBoneSelector
+from vi.priorityqueue import boneSelector
 from vi.widgets.edit import EditWidget
 from vi.widgets.file import FileWidget
 from vi.widgets.tree import TreeWidget, NodeWidget
@@ -113,5 +113,5 @@ def CheckForTreeDirBone(moduleName, boneName, skelStucture, *args, **kwargs):
 	return skelStucture[boneName]["type"].startswith("treedir.")
 
 #Register this Bone in the global queue
-editBoneSelector.insert( 5, CheckForTreeDirBoneSingleSelection, TreeDirBone)
-editBoneSelector.insert( 5, CheckForTreeDirBoneMultiSelection, TreeDirBone)
+boneSelector.insert( 5, CheckForTreeDirBoneSingleSelection, TreeDirBone)
+boneSelector.insert( 5, CheckForTreeDirBoneMultiSelection, TreeDirBone)

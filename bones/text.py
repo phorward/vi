@@ -2,7 +2,7 @@
 from vi import html5
 from vi.bones.string import StringBoneExtractor
 from vi.config import conf
-from vi.priorityqueue import editBoneSelector, viewBoneSelector, extractorDelegateSelector
+from vi.priorityqueue import boneSelector, boneSelector, extractorDelegateSelector
 from vi.widgets.htmleditor import HtmlEditor
 from vi.framework.event import EventDispatcher
 
@@ -196,6 +196,6 @@ class TextEditBone(html5.Div):
 		return skelStucture[boneName]["type"] == "text"
 
 # Register this Bone in the global queue
-editBoneSelector.insert(3, TextEditBone.checkForTextBone, TextEditBone)
-viewBoneSelector.insert(3, TextEditBone.checkForTextBone, TextViewBoneDelegate)
+boneSelector.insert(3, TextEditBone.checkForTextBone, TextEditBone)
+boneSelector.insert(3, TextEditBone.checkForTextBone, TextViewBoneDelegate)
 extractorDelegateSelector.insert(3, TextEditBone.checkForTextBone, TextBoneExtractor)

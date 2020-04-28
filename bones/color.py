@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from vi import html5
-from vi.priorityqueue import editBoneSelector, viewBoneSelector
+from vi.priorityqueue import boneSelector, boneSelector
 from vi.config import conf
 
 class ColorViewBoneDelegate( object ):
@@ -62,5 +62,5 @@ def CheckForColorBone(moduleName, boneName, skelStucture, *args, **kwargs):
 	return skelStucture[boneName]["type"] == "color"
 
 #Register this Bone in the global queue
-editBoneSelector.insert( 3, CheckForColorBone, ColorEditBone)
-viewBoneSelector.insert( 3, CheckForColorBone, ColorViewBoneDelegate)
+boneSelector.insert( 3, CheckForColorBone, ColorEditBone)
+boneSelector.insert( 3, CheckForColorBone, ColorViewBoneDelegate)

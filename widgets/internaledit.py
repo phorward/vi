@@ -2,7 +2,7 @@
 from vi import html5
 from vi.network import DeferredCall
 from vi.config import conf
-from vi.priorityqueue import editBoneSelector
+from vi.priorityqueue import boneSelector
 from vi.exception import InvalidBoneValueException
 from vi.widgets.tooltip import ToolTip
 from vi.widgets.accordion import Accordion
@@ -64,8 +64,8 @@ class InternalEdit(html5.Div):
 				if not firstCat:
 					firstCat = segments[cat]
 
-			wdgGen = editBoneSelector.select(self.module, key, tmpDict)
-			widget = wdgGen.fromSkelStructure(self.module, key, tmpDict)
+			wdgGen = boneSelector.select(self.module, key, tmpDict)
+			widget = wdgGen.editBone(self.module, key, tmpDict)
 			widget["id"] = "vi_%s_%s_%s_%s_bn_%s" % (self.editIdx, None, "internal", cat or "empty", key)
 
 			descrLbl = html5.Label(bone["descr"])

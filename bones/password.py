@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from vi import html5
 
-from vi.priorityqueue import editBoneSelector, viewBoneSelector
+from vi.priorityqueue import boneSelector, boneSelector
 from vi.exception import InvalidBoneValueException
 from vi.i18n import translate
 
@@ -64,6 +64,6 @@ def CheckForPasswordBone(  moduleName, boneName, skelStucture, *args, **kwargs )
 	return str(skelStucture[boneName]["type"]).startswith("password")
 
 #Register this Bone in the global queue
-editBoneSelector.insert( 5, CheckForPasswordBone, PasswordEditBone)
+boneSelector.insert( 5, CheckForPasswordBone, PasswordEditBone)
 
 
