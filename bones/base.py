@@ -6,12 +6,11 @@ from vi.config import conf
 
 # --- Single -----------------------------------------------------------------------------------------------------------
 
-class BaseBone(html5.Widget): # @AK: Wir erben von html5.Widget, weil wir damit den Typ des Tags verändern können (beim erben)
-	_baseClass = "div"
+class BaseBone(html5.Div):
 	template = """<input [name]="widget">"""
 	style = None    # @AK: Definiert styling-Klassen, die via addClass hinzugefügt werden
 
-	def __init__(self, moduleName, boneName, boneStructure, data=None, *args, **kwargs):
+	def __init__(self, moduleName, boneName, skelStructure, data=None, *args, **kwargs):
 		super().__init__(
 			self.template,
 			style=self.style
@@ -19,7 +18,7 @@ class BaseBone(html5.Widget): # @AK: Wir erben von html5.Widget, weil wir damit 
 
 		self.moduleName = moduleName
 		self.boneName = boneName
-		self.boneStructure = boneStructure
+		self.skelStructure = skelStructure
 
 		if "widget" not in dir(self):
 			self.widget = None
@@ -70,25 +69,25 @@ class BaseBone(html5.Widget): # @AK: Wir erben von html5.Widget, weil wir damit 
 
 	def update(self):
 		#todo
-		if self.boneStructure.get("readOnly", False):
+		if self.skelStructure.get("readOnly", False):
 			self.disable()
 
 	@classmethod
-	def editBone(cls, moduleName, boneName, boneStructure, data=None):
+	def editBone(cls, moduleName, boneName, skelStructure, data=None):
 		"""
 		Creates a Widget that is used to edit the bone.
 		"""
-		return cls(moduleName, boneName, boneStructure, data=data)
+		return cls(moduleName, boneName, skelStructure, data=data)
 
 	@classmethod
-	def getEditBoneFactory(cls, moduleName, boneName, boneStructure):
+	def getEditBoneFactory(cls, moduleName, boneName, skelStructure):
 		"""
 		Generates a factory for editBones with the equal base configuration.
 		"""
-		return lambda data=None: cls(moduleName, boneName, boneStructure, data=data)
+		return lambda data=None: cls(moduleName, boneName, skelStructure, data=data)
 
 	@classmethod
-	def viewBone(cls, moduleName, boneName, boneStructure, data):
+	def viewBone(cls, moduleName, boneName, skelStructure, data):
 		"""
 		Creates a Widget that is used to display the bone extracted from data.
 		"""
@@ -98,24 +97,23 @@ class BaseBone(html5.Widget): # @AK: Wir erben von html5.Widget, weil wir damit 
 		return html5.Span(html5.TextNode(data.get(boneName) or conf["emptyValue"]))
 
 	@classmethod
-	def getViewBoneFactory(cls, moduleName, boneName, boneStructure):
+	def getViewBoneFactory(cls, moduleName, boneName, skelStructure):
 		"""
 		Generates a factory for viewBones with equal base configuration.
 		Returns a function to be called with data where the bone will be extracted from.
 		"""
-		return lambda data: cls.viewBone(moduleName, boneName, boneStructure, data)
+		return lambda data: cls.viewBone(moduleName, boneName, skelStructure, data)
 
 	@classmethod
-	def checkFor(cls, _moduleName, _boneName, _boneStructure):
+	def checkFor(cls, _moduleName, _boneName, _skelStructure):
 		return True
 
 boneSelector.insert(0, BaseBone.checkFor, BaseBone)
 
 # --- Multiple ---------------------------------------------------------------------------------------------------------
 
-class BaseMultiBoneEntry(html5.Widget): #@AK überlege noch diesen in BaseMultiBone einfließen zu lassen... was meinste?
+class BaseMultiBoneEntry(html5.Div):    #@AK überlege noch diesen in BaseMultiBone einfließen zu lassen... was meinste?
 										# der dient im Moment nur als Wrapper für einen Eintrag, reicht aber vieles durch.
-	_baseClass = "div"
 	template = """
 	<button [name]="removeBtn" class="btn-delete" text="Delete" icon="icons-delete"></button>
 	"""
@@ -150,9 +148,8 @@ class BaseMultiBoneEntry(html5.Widget): #@AK überlege noch diesen in BaseMultiB
 		self.widget.focus()
 
 class BaseMultiBone(BaseBone):
-	_baseClass = "div"
-	boneFactory = BaseBone
-	rowConstructor = BaseMultiBoneEntry
+	boneFactory = BaseBone  # Defines the constructor of the bone used for each entry
+	rowConstructor = BaseMultiBoneEntry  # Defines the constructor of the entry bone wrapper used for each entry
 	style = None
 	template = """
 		<div [name]="widgets" class="vi-bone-widgets"></div>
@@ -171,7 +168,7 @@ class BaseMultiBone(BaseBone):
 		entry.focus()
 
 	def addEntry(self, value=None):
-		entry = self.boneFactory(self.moduleName, self.boneName, self.boneStructure)
+		entry = self.boneFactory(self.moduleName, self.boneName, self.skelStructure)
 		if self.rowConstructor:
 			entry = self.rowConstructor(entry)
 
@@ -247,18 +244,28 @@ class BaseMultiBone(BaseBone):
 		return retDict
 
 	@classmethod
-	def checkFor(cls, _moduleName, boneName, boneStructure):
-		return boneStructure[boneName].get("multiple")
+	def checkFor(cls, _moduleName, boneName, skelStructure):
+		return skelStructure[boneName].get("multiple")
 
 	@classmethod
-	def viewBone(cls, moduleName, boneName, boneStructure, data=None):
+	def viewBone(cls, moduleName, boneName, skelStructure, data):
 		values = (data.get(boneName) if data else None) or []
 
 		ul = html5.Ul()
 		for value in values:
+			data.update({boneName: value})
+
+			#@AK: Hier oben eine Zeile drüber suggerieren wir dem Bone es sein "ein Bone" obwohl es ja ein Multi ist...
+			# ich bin damit noch nicht ganz zufrieden, aber sehe keine andere Möglichkeit... im Grunde ist es ja gut,
+			# das immer das gesamte Dict angegeben wird mit allen Werte weil man dann auch Bones aus mehrere Werten
+			# füttern kann...hab das schon mal gebraucht... das ein Bone abhängig davon ist was in einem anderen Bone
+			# drinsteht...
+
 			ul.appendChild(
-				html5.Li(cls.boneFactory.viewBone(moduleName, boneName, boneStructure, data={boneName: value}))
+				html5.Li(cls.boneFactory.viewBone(moduleName, boneName, skelStructure, data))
 			)
+
+		data.update({boneName: values})
 
 		return ul
 
@@ -269,19 +276,18 @@ boneSelector.insert(1, BaseMultiBone.checkFor, BaseMultiBone)
 # --- Language ---------------------------------------------------------------------------------------------------------
 
 class BaseLangBone(BaseBone):
-	_baseClass = "div"
-	boneFactory = BaseBone
+	boneFactory = BaseBone  # Defines the factory for the bone used for each language
 	style = None
 	template = """
 		<div [name]="widgets" class="vi-bone-widgets"></div>
 		<div [name]="actions" class="vi-bone-actions"></div>
 	"""
 
-	def __init__(self, moduleName, boneName, boneStructure, data=None):
-		super().__init__(moduleName, boneName, boneStructure, data=data)
+	def __init__(self, moduleName, boneName, skelStructure, data=None):
+		super().__init__(moduleName, boneName, skelStructure, data=data)
 
 		self.btn4Lang = {}
-		for lang in self.boneStructure[self.boneName]["languages"]:
+		for lang in self.skelStructure[self.boneName]["languages"]:
 			langBtn = Button(lang, callback=self.onLangBtnClick)
 			langBtn.lang = lang
 			langBtn.addClass("btn--lang")
@@ -293,7 +299,7 @@ class BaseLangBone(BaseBone):
 
 			self.actions.appendChild(langBtn)
 
-			langWidget = self.boneFactory(self.moduleName, self.boneName, self.boneStructure)
+			langWidget = self.boneFactory(self.moduleName, self.boneName, self.skelStructure)
 			langWidget.lang = lang
 
 			if lang != conf["defaultLanguage"]:
@@ -341,23 +347,26 @@ class BaseLangBone(BaseBone):
 		}
 
 	@classmethod
-	def checkFor(cls, _moduleName, boneName, boneStructure):
-		return not boneStructure[boneName].get("multiple") and isinstance(boneStructure[boneName].get("languages"), list)
+	def checkFor(cls, _moduleName, boneName, skelStructure):
+		return not skelStructure[boneName].get("multiple") and isinstance(skelStructure[boneName].get("languages"), list)
 
 	@classmethod
-	def viewBone(cls, moduleName, boneName, boneStructure, data=None):
+	def viewBone(cls, moduleName, boneName, skelStructure, data):
 		values = (data.get(boneName) if data else None) or []
 
 		ul = html5.Ul()
-		for lang in boneStructure[boneName]["languages"]:
+		for lang in skelStructure[boneName]["languages"]:
 			value = values.get(lang)
+			data.update({boneName: value})
+
 			ul.appendChild(
 				html5.Li(
 					html5.Span(lang),
-					cls.boneFactory.viewBone(moduleName, boneName, boneStructure, data={boneName: value})
+					cls.boneFactory.viewBone(moduleName, boneName, skelStructure, data)
 				)
 			)
 
+		data.update({boneName: values})
 		return ul
 
 # Register this Bone in the global queue as generic fallback.
@@ -369,8 +378,8 @@ class BaseMultiLangBone(BaseLangBone):
 	boneFactory = BaseMultiBone
 
 	@classmethod
-	def checkFor(cls, _moduleName, boneName, boneStructure):
-		return boneStructure[boneName].get("multiple") and isinstance(boneStructure[boneName].get("languages"), list)
+	def checkFor(cls, _moduleName, boneName, skelStructure):
+		return skelStructure[boneName].get("multiple") and isinstance(skelStructure[boneName].get("languages"), list)
 
 # Register this Bone in the global queue as generic fallback.
 boneSelector.insert(2, BaseMultiLangBone.checkFor, BaseMultiLangBone)
