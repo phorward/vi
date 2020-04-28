@@ -10,11 +10,11 @@ class Button(html5.Button):
 		self.sinkEvent("onClick")
 		self.svg = None
 
-		if icon is not None:
-			self["icon"] = icon
-
 		if text is not None:
 			self["text"] = text
+
+		if icon is not None:
+			self["icon"] = icon
 
 		self.callback = callback
 
@@ -44,9 +44,9 @@ class Button(html5.Button):
 		if not icon:
 			return
 
-		svg = embedsvg.get(icon)
-		if svg:
-			self.element.innerHTML = svg + self["title"]
+		self.svg = embedsvg.get(icon)
+		if self.svg:
+			self.element.innerHTML = self.svg + self["title"]
 
 	def _setText(self, text):
 		if text is not None:
