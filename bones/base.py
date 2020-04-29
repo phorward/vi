@@ -4,13 +4,12 @@ from vi.framework.components.button import Button
 from vi.priorityqueue import boneSelector
 from vi.config import conf
 
-# --- Single -----------------------------------------------------------------------------------------------------------
 
 class BaseBone(html5.Div):
-	template = """<input [name]="widget">"""
-	style = None    # @AK: Definiert styling-Klassen, die via addClass hinzugefügt werden
+	template = """<input class="input" [name]="widget">"""
+	style = []
 
-	def __init__(self, moduleName, boneName, skelStructure, data=None, *args, **kwargs):
+	def __init__(self, moduleName: str, boneName: str, skelStructure: dict, data: dict=None, *args, **kwargs):
 		super().__init__(
 			self.template,
 			style=self.style
@@ -31,34 +30,50 @@ class BaseBone(html5.Div):
 		self.update()
 
 	def focus(self):
+		"""
+		Focus the widget.
+		"""
 		if self.widget:
 			self.widget.focus()
 		else:
 			super().focus()
 
-	def _setValue(self, value):
-		# @AK: Unter widget["value"] wird hierbei der Raw-Wert abgelegt. BaseBone geht davon aus,
-		#      dass der Wert entweder an ein "widget" weitergereicht wird, oder speichert den Wert selbst.
+	def _setValue(self, value: str):
+		"""
+		Implements lvalue call for widget["value"]
+		"""
 		if self.widget:
 			self.widget["value"] = value
-		else:
-			self.value = value
 
-	def _getValue(self):
+		self.value = value
+
+	def _getValue(self) -> str:
+		"""
+		Implements rvalue call for widget["value"]
+		"""
 		if self.widget:
 			return self.widget["value"]
 
 		return self.value
 
-	def unserialize(self, data, errorInfo=None):
+	def unserialize(self, data: dict, errorInfo=None):
+		"""
+		Unserialize the value from a list-dict-serialized structure.
+		"""
 		self["value"] = data.get(self.boneName)
 
 	def serializeForPost(self, prefix=""):
+		"""
+		Serialize the bone's value to be sent to the server via POST.
+		"""
 		return {
 			(prefix or self.boneName): self["value"]
 		}
 
 	def serializeForDocument(self):
+		"""
+		Serialize the bone's value in a list-dict-serialized style.
+		"""
 		return {
 			self.boneName: self["value"]
 		}
@@ -73,70 +88,58 @@ class BaseBone(html5.Div):
 			self.disable()
 
 	@classmethod
-	def editBone(cls, moduleName, boneName, skelStructure, data=None):
+	def editBone(cls, moduleName: str, boneName: str, skelStructure: dict, data=None) -> html5.Widget:
 		"""
 		Creates a Widget that is used to edit the bone.
 		"""
 		return cls(moduleName, boneName, skelStructure, data=data)
 
 	@classmethod
-	def getEditBoneFactory(cls, moduleName, boneName, skelStructure):
+	def getEditBoneFactory(cls, moduleName: str, boneName: str, skelStructure: dict) -> callable:
 		"""
 		Generates a factory for editBones with the equal base configuration.
 		"""
 		return lambda data=None: cls(moduleName, boneName, skelStructure, data=data)
 
 	@classmethod
-	def viewBone(cls, moduleName, boneName, skelStructure, data):
+	def viewBone(cls, moduleName: str, boneName: str, skelStructure: dict, data=None) -> html5.Widget:
 		"""
 		Creates a Widget that is used to display the bone extracted from data.
 		"""
-
-		#@AK: Hatte hier erst überlegt sowas wie ein "viewTemplate" zu machen, aber wie soll man das dann ausdrücken
-		#     bei Multiple? Macht keinen Sinn glaube ich.
-		return html5.Span(html5.TextNode(data.get(boneName) or conf["emptyValue"]))
+		return html5.Span(html5.TextNode((data.get(boneName) if data else None) or conf["emptyValue"]))
 
 	@classmethod
-	def getViewBoneFactory(cls, moduleName, boneName, skelStructure):
+	def getViewBoneFactory(cls, moduleName: str, boneName: str, skelStructure: dict) -> callable:
 		"""
 		Generates a factory for viewBones with equal base configuration.
 		Returns a function to be called with data where the bone will be extracted from.
 		"""
-		return lambda data: cls.viewBone(moduleName, boneName, skelStructure, data)
+		return lambda data=None: cls.viewBone(moduleName, boneName, skelStructure, data)
 
 	@classmethod
-	def checkFor(cls, _moduleName, _boneName, _skelStructure):
+	def checkFor(cls, moduleName: str, boneName: str, skelStructure: str) -> bool:
+		"""
+		Check function for the plugin handling.
+		"""
 		return True
+
 
 boneSelector.insert(0, BaseBone.checkFor, BaseBone)
 
-# --- Multiple ---------------------------------------------------------------------------------------------------------
 
-class BaseMultiBoneEntry(html5.Div):    #@AK überlege noch diesen in BaseMultiBone einfließen zu lassen... was meinste?
-										# der dient im Moment nur als Wrapper für einen Eintrag, reicht aber vieles durch.
+class BaseMultiBoneEntry(html5.Div):
 	template = """
-	<button [name]="removeBtn" class="btn-delete" text="Delete" icon="icons-delete"></button>
+	<button [name]="removeBtn" class="btn--delete" text="Delete" icon="icons-delete"></button>
 	"""
 
-	def __init__(self, widget):
+	def __init__(self, widget: BaseBone):
 		super().__init__(self.template)
 		self.widget = widget
 		self.attachWidget()
 
-	def _getValue(self):
-		return self.widget["value"]
-
-	def _setValue(self, value):
-		self.widget["value"] = value
-
-	def unserialize(self, data, errorInfo=None):
-		self.widget.unserialize(data, errorInfo=errorInfo)
-
-	def serializeForPost(self, prefix=""):
-		return self.widget.serializeForPost(prefix=prefix)
-
-	def serializeForDocument(self):
-		return self.widget.serializeForDocument()
+		# Proxy some functions of the original widget
+		for fct in ["_getValue", "_setValue", "unserialize", "serializeForPost", "serializeForDocument", "focus"]:
+			setattr(self, fct, getattr(self.widget, fct))
 
 	def attachWidget(self):
 		self.prependChild(self.widget)
@@ -150,11 +153,10 @@ class BaseMultiBoneEntry(html5.Div):    #@AK überlege noch diesen in BaseMultiB
 class BaseMultiBone(BaseBone):
 	boneFactory = BaseBone  # Defines the constructor of the bone used for each entry
 	rowConstructor = BaseMultiBoneEntry  # Defines the constructor of the entry bone wrapper used for each entry
-	style = None
 	template = """
 		<div [name]="widgets" class="vi-bone-widgets"></div>
 		<div [name]="actions" class="vi-bone-actions">
-			<button [name]="addBtn" class="btn-add" text="Add" icon="icons-add"></button>
+			<button [name]="addBtn" class="btn--add" text="Add" icon="icons-add"></button>
 		</div>
 	"""
 
@@ -178,7 +180,7 @@ class BaseMultiBone(BaseBone):
 		self.widgets.appendChild(entry)
 		return entry
 
-	def _setValue(self, value):
+	def _setValue(self, value: list):
 		self.widgets.removeAllChildren()
 
 		if not isinstance(value, list):
@@ -187,7 +189,7 @@ class BaseMultiBone(BaseBone):
 		for entry in value:
 			self.addEntry(entry)
 
-	def _getValue(self):
+	def _getValue(self) -> list:
 		ret = []
 
 		for entry in self.widgets.children():
@@ -199,19 +201,7 @@ class BaseMultiBone(BaseBone):
 
 		return ret
 
-	def unserialize(self, data, errorInfo=None):
-		self["value"] = data.get(self.boneName)
-
-	def serializeForDocument(self):
-		return {
-			self.boneName: self["value"]
-		}
-
-	def serializeForPost(self, prefix=""):
-		#@AK: Diesen Affentanz müssen wir machen, weil der Core das parsing der Parameter beim fromClient() nicht so
-		#     umsetzt wie ich es mal vorgeschlagen hatte, indem es immer bonename.0, bonename.1 etc. ist... nein hier
-		#     ist es eine list, wenn es ein Wert je Sub-Widget ist und eine dict[key + "." + index] wenn es z.b. ein
-		#     relationalBone ist... naja egal, mache hier nur meinen doofen job.
+	def serializeForPost(self, prefix="") -> dict:
 		retDict = {}
 		retList = []
 		cnt = 0
@@ -233,8 +223,7 @@ class BaseMultiBone(BaseBone):
 			cnt += 1
 
 		assert not(retDict and retList), \
-			"Something inside the bone implementation of %s is wrong" % self.boneFactory.__class__.__name__
-			#@AK: Dieses assert wäre dann hinfällig (siehe oben)
+			"Something inside the bone implementation of %r is wrong" % self.boneFactory.__class__.__name__
 
 		if retList:
 			return {
@@ -244,46 +233,40 @@ class BaseMultiBone(BaseBone):
 		return retDict
 
 	@classmethod
-	def checkFor(cls, _moduleName, boneName, skelStructure):
+	def checkFor(cls, moduleName: str, boneName: str, skelStructure: dict) -> bool:
 		return skelStructure[boneName].get("multiple")
 
 	@classmethod
-	def viewBone(cls, moduleName, boneName, skelStructure, data):
+	def viewBone(cls, moduleName: str, boneName: str, skelStructure: dict, data=None) -> html5.Widget:
 		values = (data.get(boneName) if data else None) or []
 
-		ul = html5.Ul()
+		ul = html5.Ul(style=["vi-bone-view-multiple-wrapper"])
 		for value in values:
+			# this is done temporarily only, to suggest the bone it is "alone" in the data...
 			data.update({boneName: value})
-
-			#@AK: Hier oben eine Zeile drüber suggerieren wir dem Bone es sein "ein Bone" obwohl es ja ein Multi ist...
-			# ich bin damit noch nicht ganz zufrieden, aber sehe keine andere Möglichkeit... im Grunde ist es ja gut,
-			# das immer das gesamte Dict angegeben wird mit allen Werte weil man dann auch Bones aus mehrere Werten
-			# füttern kann...hab das schon mal gebraucht... das ein Bone abhängig davon ist was in einem anderen Bone
-			# drinsteht...
 
 			ul.appendChild(
 				html5.Li(cls.boneFactory.viewBone(moduleName, boneName, skelStructure, data))
 			)
 
+		# here we reset the data dict to the original values
 		data.update({boneName: values})
 
 		return ul
+
 
 # Register this Bone in the global queue as generic fallback.
 boneSelector.insert(1, BaseMultiBone.checkFor, BaseMultiBone)
 
 
-# --- Language ---------------------------------------------------------------------------------------------------------
-
 class BaseLangBone(BaseBone):
 	boneFactory = BaseBone  # Defines the factory for the bone used for each language
-	style = None
 	template = """
 		<div [name]="widgets" class="vi-bone-widgets"></div>
 		<div [name]="actions" class="vi-bone-actions"></div>
 	"""
 
-	def __init__(self, moduleName, boneName, skelStructure, data=None):
+	def __init__(self, moduleName: str, boneName: str, skelStructure: dict, data=None):
 		super().__init__(moduleName, boneName, skelStructure, data=data)
 
 		self.btn4Lang = {}
@@ -316,22 +299,19 @@ class BaseLangBone(BaseBone):
 				widget.hide()
 				self.btn4Lang[widget.lang].removeClass("is-active")
 
-	def _getValue(self):
+	def _getValue(self) -> dict:
 		return {
 			widget.lang: widget["value"] for widget in self.widgets.children()
 		}
 
-	def _setValue(self, value):
+	def _setValue(self, value: dict):
 		if not isinstance(value, dict):
 			return
 
 		for widget in self.widgets.children():
 			widget["value"] = value.get(widget.lang)
 
-	def unserialize(self, data, errorInfo=None):
-		self["value"] = data.get(self.boneName)
-
-	def serializeForPost(self, prefix=""):
+	def serializeForPost(self, prefix="") -> dict:
 		ret = {}
 
 		for lang in self.widgets.children():
@@ -341,45 +321,45 @@ class BaseLangBone(BaseBone):
 
 		return ret
 
-	def serializeForDocument(self):
-		return {
-			self.boneName: self["value"]
-		}
-
 	@classmethod
-	def checkFor(cls, _moduleName, boneName, skelStructure):
+	def checkFor(cls, moduleName: str, boneName: str, skelStructure: dict) -> bool:
 		return not skelStructure[boneName].get("multiple") and isinstance(skelStructure[boneName].get("languages"), list)
 
 	@classmethod
-	def viewBone(cls, moduleName, boneName, skelStructure, data):
+	def viewBone(cls, moduleName, boneName, skelStructure, data=None):
 		values = (data.get(boneName) if data else None) or []
 
-		ul = html5.Ul()
+		ul = html5.Ul(style="vi-bone-view-language")
 		for lang in skelStructure[boneName]["languages"]:
 			value = values.get(lang)
+
+			# this is done temporarily only, to suggest the bone it is "alone" in the data...
 			data.update({boneName: value})
 
 			ul.appendChild(
 				html5.Li(
 					html5.Span(lang),
-					cls.boneFactory.viewBone(moduleName, boneName, skelStructure, data)
+					cls.boneFactory.viewBone(moduleName, boneName, skelStructure, data),
+					style=["vi-bone-view-language-wrapper", "vi-bone-view-language-wrapper-%s" % lang]
 				)
 			)
 
+		# here we reset the data dict to the original values
 		data.update({boneName: values})
 		return ul
+
 
 # Register this Bone in the global queue as generic fallback.
 boneSelector.insert(2, BaseLangBone.checkFor, BaseLangBone)
 
-# --- Multi+Language ---------------------------------------------------------------------------------------------------
 
 class BaseMultiLangBone(BaseLangBone):
 	boneFactory = BaseMultiBone
 
 	@classmethod
-	def checkFor(cls, _moduleName, boneName, skelStructure):
+	def checkFor(cls, moduleName, boneName, skelStructure):
 		return skelStructure[boneName].get("multiple") and isinstance(skelStructure[boneName].get("languages"), list)
+
 
 # Register this Bone in the global queue as generic fallback.
 boneSelector.insert(2, BaseMultiLangBone.checkFor, BaseMultiLangBone)
