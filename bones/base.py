@@ -6,8 +6,8 @@ from vi.config import conf
 
 
 class BaseBone(html5.Div):
-	template = """<input class="input" [name]="widget">"""
-	style = []
+	template = """<ignite-input [name]="widget">"""
+	style = ["vi-bone"]
 
 	def __init__(self, moduleName: str, boneName: str, skelStructure: dict, data: dict=None, *args, **kwargs):
 		super().__init__(

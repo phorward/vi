@@ -1,67 +1,45 @@
 # -*- coding: utf-8 -*-
 from vi import html5
-from vi.priorityqueue import boneSelector, boneSelector, extendedSearchWidgetSelector
+from vi.bones.base import BaseBone, BaseLangBone
+from vi.priorityqueue import boneSelector
 from vi.config import conf
-from vi.framework.event import EventDispatcher
 from vi.i18n import translate
 
 
-class BooleanViewBoneDelegate(object):
-	def __init__(self, moduleName, boneName, skelStructure, *args, **kwargs):
-		super(BooleanViewBoneDelegate, self).__init__()
-		self.skelStructure = skelStructure
-		self.boneName = boneName
-		self.moduleName = moduleName
+class BooleanBone(BaseBone):
+	template = """<ignite-switch [name]="widget" />"""
+	style = ["vi-bone-container"]
 
-	def render(self, data, field):
-		value = conf["emptyValue"]
+	def _setValue(self, value):
+		self.widget["checked"] = value
 
-		if field in data.keys():
-			value = translate(str(data[field]))
+	def _getValue(self):
+		return self.widget["checked"]
 
-		delegato = html5.Div(value)
-		delegato.addClass("vi-delegato", "vi-delegato--bool")
-		return delegato
+	@classmethod
+	def viewBone(cls, moduleName: str, boneName: str, skelStructure: dict, data=None) -> html5.Widget:
+		return html5.Span(html5.TextNode((translate(str(data.get(boneName))) if data else None) or conf["emptyValue"]))
 
-class BooleanEditBone(html5.Div):
+	@classmethod
+	def checkFor(cls, moduleName: str, boneName: str, skelStructure: str) -> bool:
+		return skelStructure[boneName]["type"] == "bool" or skelStructure[boneName]["type"].startswith("bool")
 
-	def __init__(self, moduleName, boneName, readOnly, *args, **kwargs):
-		super(BooleanEditBone, self).__init__(*args, **kwargs)
-		self.boneName = boneName
-		self.readOnly = readOnly
-		self.addClass("vi-bone-container")
-
-		switchWrap = html5.Div()
-		switchWrap.addClass("switch ignt-switch")
-
-		self.switch = html5.ignite.Switch()
-		switchWrap.appendChild(self.switch)
-
-		switchLabel = html5.Label(forElem=self.switch)
-		switchLabel.addClass("switch-label")
-		switchWrap.appendChild(switchLabel)
-
-		self.appendChild(switchWrap)
-
-		if readOnly:
-			self["disabled"] = True
-
-	@staticmethod
-	def fromSkelStructure(moduleName, boneName, skelStructure, *args, **kwargs):
-		readOnly = "readonly" in skelStructure[boneName].keys() and skelStructure[boneName]["readonly"]
-		return BooleanEditBone(moduleName, boneName, readOnly)
-
-	def unserialize(self, data, extendedErrorInformation=None):
-		if self.boneName in data.keys():
-			self.switch._setChecked(data[self.boneName])
-
-	def serializeForPost(self):
-		return {self.boneName: str(self.switch._getChecked())}
-
-	def serializeForDocument(self):
-		return {self.boneName: self.switch._getChecked()}
+boneSelector.insert(3, BooleanBone.checkFor, BooleanBone)
 
 
+class BooleanLangBone(BaseLangBone):
+	boneFactory = BooleanBone
+
+	@classmethod
+	def checkFor(cls, moduleName: str, boneName: str, skelStructure: str) -> bool:
+		return ((skelStructure[boneName]["type"] == "bool" or skelStructure[boneName]["type"].startswith("bool"))
+				and super().checkFor(moduleName, boneName, skelStructure))
+
+# Register this Bone in the global queue as generic fallback.
+boneSelector.insert(4, BooleanLangBone.checkFor, BooleanLangBone)
+
+
+'''
 class ExtendedBooleanSearch( html5.Div ):
 	def __init__(self, extension, view, module, *args, **kwargs ):
 		super( ExtendedBooleanSearch, self ).__init__( *args, **kwargs )
@@ -104,11 +82,5 @@ class ExtendedBooleanSearch( html5.Div ):
 		return( isinstance( extension, dict) and "type" in extension.keys() and (extension["type"]=="boolean" or extension["type"].startswith("boolean.") ) )
 
 
-def CheckForBooleanBone(moduleName, boneName, skelStucture, *args, **kwargs):
-	return skelStucture[boneName]["type"] == "bool"
-
-
-# Register this Bone in the global queue
-boneSelector.insert(3, CheckForBooleanBone, BooleanEditBone)
-boneSelector.insert(3, CheckForBooleanBone, BooleanViewBoneDelegate)
 extendedSearchWidgetSelector.insert(1, ExtendedBooleanSearch.canHandleExtension, ExtendedBooleanSearch)
+'''

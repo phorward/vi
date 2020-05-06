@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from . import base
+from . import boolean
+
 # from . import relational
 # from . import record
 # from . import file
