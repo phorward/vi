@@ -3,7 +3,7 @@ class apploader {
 	constructor(modules, invocation){
 		window.languagePluginLoader.then(() => {
 			// If you require for pre-loaded Python packages, enable the promise below.
-			//window.pyodide.runPythonAsync("import setuptools, micropip").then(()=>{
+			window.pyodide.runPythonAsync("import msgpack").then(()=>{
 				this.fetchSources(modules).then(() => {
 					for( let module of Object.keys(modules) )
 					{
@@ -17,7 +17,7 @@ class apploader {
 					window.pyodide.runPythonAsync( invocation).then(
 						() => this.initializingComplete());
 				});
-			//});
+			});
 		});
 	}
 
@@ -33,7 +33,7 @@ class apploader {
 					fetch(url, {}).then((response) => {
 						if (response.status === 200)
 							return response.text().then((code) => {
-								let path = ("/lib/python3.7/site-packages/" + module + "/" + file).split("/");
+								let path = ("/lib/python3.8/site-packages/" + module + "/" + file).split("/");
 								let lookup = "";
 
 								for (let i in path) {

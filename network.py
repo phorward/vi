@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import os, sys, json, string, random, time, logging
+import os, sys, msgpack, string, random, time, logging
 
 from vi import html5
 from vi import framework
@@ -82,7 +82,7 @@ class NetworkService(object):
 	changeListeners = []  # All currently active widgets which will be informed of changes made
 	_cache = {}  # module->Cache index map (for requests that can be cached)
 	host = ""
-	prefix = "/json"
+	prefix = "/msgpack"
 	defaultFailureHandler = None
 
 	retryCodes = [0, -1]
@@ -200,7 +200,7 @@ class NetworkService(object):
 			:type req: Instance of NetworkService response
 			:returns: object
 		"""
-		return json.loads(req.result)
+		return msgpack.loads(bytearray(req.result, "utf-8"))
 
 	@staticmethod
 	def isOkay(req):
@@ -356,7 +356,7 @@ class NetworkService(object):
 		if self.waitingForSkey:
 			self.waitingForSkey = False
 			self.doFetch(NetworkService.urlForArgs(self.module, self.url, self.cacheable),
-			             self.params, json.loads(text))
+			             self.params, msgpack.loads(text))
 		else:
 			self.result = text
 			self.status = "succeeded"
